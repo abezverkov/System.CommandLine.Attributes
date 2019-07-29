@@ -6,11 +6,10 @@
 name: 0.0$(Rev:.r)
 pr: none
 
-pool:
-  vmImage: 'windows-2019'
-
 jobs:
 - job: test
+  pool:
+    vmImage: 'windows-2019'
   steps:
   - task: DotNetCoreCLI@2
     displayName: 'dotnet restore'
@@ -28,6 +27,8 @@ jobs:
 - job: pacakge_dev
   dependsOn: test
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/dev'))  
+  pool:
+    vmImage: 'windows-2019'
   steps:
   - task: DotNetCoreCLI@2
     displayName: 'dotnet pack'
@@ -48,6 +49,8 @@ jobs:
 - job: pacakge_public
   dependsOn: test
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))  
+  pool:
+    vmImage: 'windows-2019'
   steps:
   - task: DotNetCoreCLI@2
     displayName: 'dotnet pack'
