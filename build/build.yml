@@ -1,0 +1,67 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: name: 0.0$(Rev:.r)
+pr: none
+
+pool:
+  vmImage: 'windows-2019'
+
+jobs:
+- job: test
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet restore'
+    inputs:
+      command: 'restore'
+      projects: '*.sln'
+      feedsToUse: 'select'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test'
+    inputs:
+      command: 'test'
+      projects: 'test/**/*.csproj'
+
+- job: pacakge dev
+  dependsOn: test
+  condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/dev'))  
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet pack'
+    inputs:
+      command: 'pack'
+      packagesToPack: 'src/**/*.csproj'
+      versioningScheme: 'byEnvVar'
+      versionEnvVar: 'BUILD_BUILDNUMBER'
+      
+   - task: NuGetCommand@2
+     displayName: 'nuget push internal'
+     inputs:
+       command: 'push'
+       packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+       nuGetFeedType: 'internal'
+       publishVstsFeed: '823823d8-6155-4fa2-9ba5-a9bca33ef8fb'
+
+- job: pacakge public
+  dependsOn: test
+  condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))  
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet pack'
+    inputs:
+      command: 'pack'
+      packagesToPack: 'src/**/*.csproj'
+      versioningScheme: 'byEnvVar'
+      versionEnvVar: 'BUILD_BUILDNUMBER'
+      
+   - task: NuGetCommand@2
+     displayName: 'nuget push nuget.org'
+     inputs:
+       command: 'push'
+       packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+       nuGetFeedType: 'external'
+       publishFeedCredentials: 'Nuget.org'
+       

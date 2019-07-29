@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\System.CommandLine.Attributes\System.CommandLine.Attributes.csproj" />
+    <ProjectReference Include="..\..\src\System.CommandLine.Attributes\System.CommandLine.Attributes.csproj" />
   </ItemGroup>
 
 </Project>
